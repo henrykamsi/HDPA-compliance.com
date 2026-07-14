@@ -1,54 +1,74 @@
-(function() {
-    // --- 1. CONFIGURATION & STYLES ---
-    const LOGO_URL = "https://cdn.phototourl.com/free/2026-07-13-b04fcd38-f6d4-4406-b3f8-daf40903fda0.png";
-    
-    // Inject Styles dynamically so the host website doesn't need a separate CSS file
-    const styles = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HDPA Privacy Widget</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
         /* Splash Screen */
         #hdpa-splash {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #ffffff; z-index: 999999; display: flex;
+            background: #031124; z-index: 999999; display: flex;
             flex-direction: column; justify-content: center; align-items: center;
-            transition: opacity 0.8s ease; font-family: 'Segoe UI', sans-serif;
-            padding: 20px; box-sizing: border-box; text-align: center;
+            transition: opacity 0.8s ease; padding: 20px; box-sizing: border-box; text-align: center;
         }
-        #hdpa-splash img {
-            max-width: 150px; height: auto; margin-bottom: 20px;
-            animation: hdpa-pulse 2s infinite ease-in-out;
+        #hdpa-splash img { max-width: 240px; height: auto; margin-bottom: 25px; animation: pulse 2s infinite; }
+        
+        /* Glowing Text Effect */
+        .glow-title { 
+            color: #ffffff; margin: 0 0 10px 0; font-size: 26px; font-weight: 800; 
+            text-shadow: 0 0 10px #48abe0, 0 0 20px #48abe0, 0 0 30px #48abe0;
+            animation: glow-anim 1.5s ease-in-out infinite alternate;
         }
-        #hdpa-splash h2 { color: #008751; margin: 0 0 10px 0; font-size: 24px; font-weight: 700; }
-        #hdpa-splash p { color: #555; max-width: 500px; font-size: 15px; line-height: 1.6; margin: 0; }
+        @keyframes glow-anim {
+            from { text-shadow: 0 0 10px #48abe0, 0 0 20px #48abe0; }
+            to { text-shadow: 0 0 10px #48abe0, 0 0 20px #48abe0, 0 0 30px #48abe0, 0 0 40px #48abe0; }
+        }
+
+        /* Circular Progress */
+        .progress-wrapper { position: relative; margin-top: 35px; width: 80px; height: 80px; }
+        .progress-ring__circle {
+            stroke-dasharray: 213.6; 
+            stroke-dashoffset: 213.6;
+            transition: stroke-dashoffset 8s linear;
+            stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%;
+        }
+        .ring-bg { opacity: 0.2; }
+        .progress-text {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center;
+            color: white; font-weight: bold; font-size: 15px;
+        }
 
         /* Floating Orange Widget */
         #hdpa-widget-btn {
-            position: fixed; bottom: 20px; z-index: 999998;
+            position: fixed; bottom: 20px; right: 20px; z-index: 999998;
             width: 56px; height: 56px; border-radius: 50%;
             background: #ff9800; color: white; display: flex;
             justify-content: center; align-items: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3); cursor: pointer;
-            user-select: none; -webkit-user-select: none;
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            user-select: none; transition: left 0.5s ease, right 0.5s ease;
         }
         #hdpa-widget-btn svg { width: 28px; height: 28px; fill: white; }
 
-        /* Report Popup Modal */
+        /* Report Modal */
         #hdpa-report-modal {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0, 0, 0, 0.6); z-index: 1000000;
             display: none; justify-content: center; align-items: center;
-            font-family: 'Segoe UI', sans-serif; padding: 20px; box-sizing: border-box;
+            padding: 20px; box-sizing: border-box; backdrop-filter: blur(5px);
         }
         .hdpa-modal-card {
-            background: #ffffff; border-radius: 12px; width: 100%; max-width: 450px;
+            background: #ffffff; border-radius: 12px; width: 100%; max-width: 400px;
             padding: 30px; box-sizing: border-box; position: relative;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-            animation: hdpa-slide-up 0.3s ease;
         }
         .hdpa-modal-card h3 { margin: 0 0 15px 0; color: #333; font-size: 20px; }
         .hdpa-modal-card label { display: block; margin-bottom: 5px; color: #666; font-size: 13px; font-weight: 600; }
         .hdpa-modal-card input, .hdpa-modal-card textarea {
             width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc;
-            border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 14px;
+            border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 14px; outline: none;
         }
         .hdpa-modal-card textarea { resize: none; height: 100px; }
         .hdpa-modal-submit {
@@ -57,180 +77,146 @@
         }
         .hdpa-modal-close {
             position: absolute; top: 15px; right: 15px; background: none;
-            border: none; font-size: 20px; cursor: pointer; color: #999;
+            border: none; font-size: 24px; cursor: pointer; color: #999;
         }
 
         /* Toast Alert */
         #hdpa-toast {
             position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
             background: #333; color: #fff; padding: 10px 20px; border-radius: 20px;
-            font-size: 13px; font-family: sans-serif; z-index: 1000001; opacity: 0;
-            transition: opacity 0.3s ease; pointer-events: none;
+            font-size: 13px; z-index: 1000001; opacity: 0; transition: opacity 0.3s ease; pointer-events: none;
         }
 
-        /* Animations */
-        @keyframes hdpa-pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        @keyframes hdpa-slide-up {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-    `;
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    </style>
+</head>
+<body>
 
-    const styleEl = document.createElement('style');
-    styleEl.innerHTML = styles;
-    document.head.appendChild(styleEl);
-
-    // --- 2. GENERATE AND INJECT HTML ELEMENTS ---
-    
-    // Create Splash Screen
-    const splash = document.createElement('div');
-    splash.id = 'hdpa-splash';
-    splash.innerHTML = `
-        <img src="${LOGO_URL}" alt="HDPA Logo">
-        <h2>HDPA AUTHORIZED</h2>
-        <p>This website is authorized and operates under the strict privacy protection framework of the <strong>Henry Authority for Data Protection and Regulatory Accountability (HDPA)</strong>.</p>
-    `;
-    document.body.appendChild(splash);
-
-    // Create Floating Widget Button
-    const widgetBtn = document.createElement('div');
-    widgetBtn.id = 'hdpa-widget-btn';
-    widgetBtn.style.right = '20px'; // Initial position on the bottom-right
-    widgetBtn.innerHTML = `
-        <svg viewBox="0 0 24 24">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-        </svg>
-    `;
-    document.body.appendChild(widgetBtn);
-
-    // Create Report Modal Popup
-    const reportModal = document.createElement('div');
-    reportModal.id = 'hdpa-report-modal';
-    reportModal.innerHTML = `
-        <div class="hdpa-modal-card">
-            <button class="hdpa-modal-close" id="hdpa-modal-close-btn">&times;</button>
-            <h3>Submit Privacy Report</h3>
-            
-            <label for="hdpa-report-title">REPORT TITLE</label>
-            <input type="text" id="hdpa-report-title" placeholder="e.g., Unsolicited Tracking, Data Leak">
-
-            <label for="hdpa-report-desc">EXPLAIN HOW THIS WEBSITE TREATS YOU</label>
-            <textarea id="hdpa-report-desc" placeholder="Provide details on how your personal data or privacy preferences were compromised..."></textarea>
-
-            <button class="hdpa-modal-submit" id="hdpa-report-submit-btn">PUBLISH REPORT</button>
+    <!-- Splash Screen -->
+    <div id="hdpa-splash">
+        <img src="https://cdn.phototourl.com/free/2026-07-13-b04fcd38-f6d4-4406-b3f8-daf40903fda0.png" alt="HDPA Logo">
+        <h2 class="glow-title">This website Is Under The Protection Of Henry Authority for Data Protection and Regulatory Accountability(HDPA)</h2>
+        
+        <div class="progress-wrapper">
+            <svg class="progress-ring" width="80" height="80">
+                <circle stroke="#ffffff" stroke-width="4" fill="transparent" r="34" cx="40" cy="40" class="ring-bg"/>
+                <circle class="progress-ring__circle" stroke="#48abe0" stroke-width="5" fill="transparent" r="34" cx="40" cy="40"/>
+            </svg>
+            <div class="progress-text" id="progress-text">0%</div>
         </div>
-    `;
-    document.body.appendChild(reportModal);
+    </div>
 
-    // Create Toast
-    const toast = document.createElement('div');
-    toast.id = 'hdpa-toast';
-    document.body.appendChild(toast);
+    <!-- Floating Widget -->
+    <div id="hdpa-widget-btn">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+    </div>
 
+    <!-- Report Modal -->
+    <div id="hdpa-report-modal">
+        <div class="hdpa-modal-card">
+            <button class="hdpa-modal-close" id="hdpa-close-btn">&times;</button>
+            <h3>How is this website treating you?</h3>
+            
+            <label>REPORT TITLE</label>
+            <input type="text" id="hdpa-report-title" placeholder="e.g., Unwanted Tracking">
 
-    // --- 3. LOGIC & FUNCTIONALITY ---
+            <label>DESCRIPTION</label>
+            <textarea id="hdpa-report-desc" placeholder="Explain your experience here..."></textarea>
 
-    // A. 5-Second Splash screen timeout
-    setTimeout(() => {
-        splash.style.opacity = '0';
-        setTimeout(() => splash.remove(), 800); // Remove completely from DOM after transition
-    }, 5000);
+            <button class="hdpa-modal-submit" id="hdpa-submit-btn">Post Report</button>
+        </div>
+    </div>
 
-    // B. Switch Widget Location (Right <-> Left) every 60 seconds
-    let isRight = true;
-    setInterval(() => {
-        if (isRight) {
-            widgetBtn.style.right = 'auto';
-            widgetBtn.style.left = '20px';
-            isRight = false;
-        } else {
-            widgetBtn.style.left = 'auto';
-            widgetBtn.style.right = '20px';
-            isRight = true;
-        }
-    }, 60000);
+    <div id="hdpa-toast"></div>
 
-    // C. Long Press Handler (Detects holding for 1 second)
-    let pressTimer;
-    let isLongPress = false;
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    function startPress(e) {
-        isLongPress = false;
-        pressTimer = setTimeout(() => {
-            isLongPress = true;
-            showToast("Powered by Henry Global Tech Industry");
-        }, 1000); // 1000ms long press
-    }
-
-    function cancelPress(e) {
-        clearTimeout(pressTimer);
-    }
-
-    // Event listeners for both mobile touch and desktop mouse clicks
-    widgetBtn.addEventListener('mousedown', startPress);
-    widgetBtn.addEventListener('touchstart', startPress, { passive: true });
-    widgetBtn.addEventListener('mouseup', cancelPress);
-    widgetBtn.addEventListener('touchend', cancelPress);
-    widgetBtn.addEventListener('mouseleave', cancelPress);
-
-    // D. Click Handling (Only opens modal if it was NOT a long press)
-    widgetBtn.addEventListener('click', (e) => {
-        if (!isLongPress) {
-            reportModal.style.display = 'flex';
-        }
-    });
-
-    // Close Modal Logic
-    document.getElementById('hdpa-modal-close-btn').addEventListener('click', () => {
-        reportModal.style.display = 'none';
-    });
-
-    // Close on outside click
-    reportModal.addEventListener('click', (e) => {
-        if (e.target === reportModal) {
-            reportModal.style.display = 'none';
-        }
-    });
-
-    // E. Submit / Publish Report Action
-    document.getElementById('hdpa-report-submit-btn').addEventListener('click', () => {
-        const title = document.getElementById('hdpa-report-title').value.trim();
-        const desc = document.getElementById('hdpa-report-desc').value.trim();
-
-        if (!title || !desc) {
-            alert("Please fill in both fields before publishing.");
-            return;
-        }
-
-        // --- DATA BINDING TO HOST SITE ---
-        const reportData = {
-            title: title,
-            description: desc,
-            domain: window.location.hostname,
-            timestamp: new Date().toISOString()
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7p9HknzV6mmX3Fe78U-l46DqY0fikC58",
+            authDomain: "hgt-policy.firebaseapp.com",
+            projectId: "hgt-policy",
+            storageBucket: "hgt-policy.firebasestorage.app",
+            messagingSenderId: "440193588775",
+            appId: "1:440193588775:web:49fe3fb7d8ee3e008cf802",
+            measurementId: "G-X18YPTYQCE"
         };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-        // Here, your index.html / app.js will listen to these entries 
-        console.log("HDPA Report Generated:", reportData);
-        
-        // Visual validation
-        alert("Privacy Report successfully dispatched to HDPA Registry.");
-        
-        // Reset and close
-        document.getElementById('hdpa-report-title').value = '';
-        document.getElementById('hdpa-report-desc').value = '';
-        reportModal.style.display = 'none';
-    });
-
-    // F. Utility Toast Display
-    function showToast(message) {
-        toast.innerText = message;
-        toast.style.opacity = '1';
+        // 1. Splash Screen Progress (8 Seconds)
         setTimeout(() => {
-            toast.style.opacity = '0';
-        }, 2500);
-    }
-})();
+            document.querySelector('.progress-ring__circle').style.strokeDashoffset = "0";
+        }, 50);
+
+        let progress = 0;
+        const pText = document.getElementById('progress-text');
+        const interval = setInterval(() => {
+            progress += 1;
+            pText.innerText = Math.min(progress, 100) + '%';
+            if(progress >= 100) clearInterval(interval);
+        }, 80); 
+
+        setTimeout(() => {
+            const splash = document.getElementById('hdpa-splash');
+            splash.style.opacity = '0';
+            setTimeout(() => splash.style.display = 'none', 800);
+        }, 8000);
+
+        // 2. Alternating Widget Logic
+        const widgetBtn = document.getElementById('hdpa-widget-btn');
+        let isRight = true;
+        setInterval(() => {
+            if (isRight) {
+                widgetBtn.style.right = 'auto'; widgetBtn.style.left = '20px'; isRight = false;
+            } else {
+                widgetBtn.style.left = 'auto'; widgetBtn.style.right = '20px'; isRight = true;
+            }
+        }, 60000);
+
+        // 3. Long Press Logic
+        let pressTimer; let isLongPress = false;
+        const toast = document.getElementById('hdpa-toast');
+
+        function showToast(msg) {
+            toast.innerText = msg; toast.style.opacity = '1';
+            setTimeout(() => toast.style.opacity = '0', 2500);
+        }
+        const startPress = () => {
+            isLongPress = false;
+            pressTimer = setTimeout(() => { isLongPress = true; showToast("Powered by HGT, Henry Global Tech Industry"); }, 1000);
+        };
+        const cancelPress = () => clearTimeout(pressTimer);
+
+        widgetBtn.addEventListener('mousedown', startPress);
+        widgetBtn.addEventListener('touchstart', startPress, { passive: true });
+        widgetBtn.addEventListener('mouseup', cancelPress);
+        widgetBtn.addEventListener('touchend', cancelPress);
+        widgetBtn.addEventListener('mouseleave', cancelPress);
+
+        // 4. Modal Logic
+        const modal = document.getElementById('hdpa-report-modal');
+        widgetBtn.addEventListener('click', () => { if (!isLongPress) modal.style.display = 'flex'; });
+        document.getElementById('hdpa-close-btn').addEventListener('click', () => modal.style.display = 'none');
+
+        // 5. Firebase Post Logic
+        document.getElementById('hdpa-submit-btn').addEventListener('click', async () => {
+            const title = document.getElementById('hdpa-report-title').value.trim();
+            const desc = document.getElementById('hdpa-report-desc').value.trim();
+            const btn = document.getElementById('hdpa-submit-btn');
+
+            if (!title || !desc) { alert("Please complete both fields."); return; }
+            btn.innerText = "Posting...";
+            try {
+                await addDoc(collection(db, "reports"), { title: title, description: desc, timestamp: new Date().toISOString() });
+                alert("Report successfully sent to HGT Data Servers.");
+                modal.style.display = 'none';
+                document.getElementById('hdpa-report-title').value = '';
+                document.getElementById('hdpa-report-desc').value = '';
+            } catch (error) { alert("Failed to send. Please try again."); }
+            btn.innerText = "Post Report";
+        });
+    </script>
+</body>
+</html>
