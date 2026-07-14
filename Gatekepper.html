@@ -1,0 +1,205 @@
+(async function() {
+    // 1. INSTANTLY BLOCK THE WEBSITE CONTENT
+    // This prevents the user from seeing the website before the Gatekeeper loads.
+    const blockerStyle = document.createElement('style');
+    blockerStyle.innerHTML = `
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden !important; }
+        body > *:not(#hdpc-gatekeeper-container) { filter: blur(10px) !important; pointer-events: none !important; user-select: none !important; opacity: 0.3 !important; }
+    `;
+    document.head.appendChild(blockerStyle);
+
+    // 2. FIREBASE CONFIGURATION (Using your provided HGT config)
+    const firebaseConfig = {
+        apiKey: "AIzaSyA7p9HknzV6mmX3Fe78U-l46DqY0fikC58",
+        authDomain: "hgt-policy.firebaseapp.com",
+        projectId: "hgt-policy",
+        storageBucket: "hgt-policy.firebasestorage.app",
+        messagingSenderId: "440193588775",
+        appId: "1:440193588775:web:49fe3fb7d8ee3e008cf802",
+        measurementId: "G-X18YPTYQCE"
+    };
+
+    // 3. INJECT HDPC STYLES
+    const hdpcStyles = document.createElement('style');
+    hdpcStyles.innerHTML = `
+        #hdpc-gatekeeper-container {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px);
+            z-index: 2147483647; display: flex; justify-content: center; align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333; transition: opacity 0.6s ease;
+        }
+        .hdpc-card {
+            background: #fff; width: 100%; max-width: 420px; padding: 40px 30px;
+            border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            text-align: center; position: relative; border-top: 5px solid #008751;
+        }
+        .hdpc-title { font-size: 22px; font-weight: 700; color: #111; margin-bottom: 5px; }
+        .hdpc-subtitle { font-size: 14px; color: #666; margin-bottom: 25px; }
+        .hdpc-input {
+            width: 100%; padding: 14px; border: 2px solid #e0e0e0; border-radius: 8px;
+            font-size: 16px; text-align: center; letter-spacing: 1px; outline: none;
+            transition: border-color 0.3s; box-sizing: border-box; margin-bottom: 20px;
+        }
+        .hdpc-input:focus { border-color: #008751; }
+        .hdpc-btn {
+            background: #008751; color: #fff; border: none; width: 100%; padding: 15px;
+            border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer;
+            transition: background 0.3s;
+        }
+        .hdpc-btn:hover { background: #00683f; }
+        
+        /* Circular Progress & Status */
+        .hdpc-status { display: none; flex-direction: column; align-items: center; margin-top: 20px; }
+        .hdpc-spinner {
+            width: 40px; height: 40px; border: 4px solid #f3f3f3;
+            border-top: 4px solid #008751; border-radius: 50%;
+            animation: hdpc-spin 1s linear infinite; margin-bottom: 10px;
+        }
+        .hdpc-status-text { font-size: 14px; font-weight: 600; color: #008751; }
+        
+        /* Result Icons */
+        .hdpc-icon { width: 60px; height: 60px; margin-bottom: 15px; display: none; }
+        .hdpc-success { fill: #008751; }
+        .hdpc-error { fill: #d32f2f; }
+        
+        .hdpc-redirect-btn {
+            background: transparent; color: #d32f2f; border: 1px solid #d32f2f;
+            width: 100%; padding: 12px; border-radius: 8px; font-size: 14px;
+            font-weight: 600; cursor: pointer; margin-top: 15px; display: none;
+        }
+
+        @keyframes hdpc-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    `;
+    document.head.appendChild(hdpcStyles);
+
+    // Wait for the body to be available before injecting UI
+    document.addEventListener("DOMContentLoaded", async () => {
+        // 4. BUILD THE UI
+        const container = document.createElement('div');
+        container.id = 'hdpc-gatekeeper-container';
+        container.innerHTML = `
+            <div class="hdpc-card">
+                <!-- Success Icon -->
+                <svg class="hdpc-icon hdpc-success" id="hdpc-success-icon" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+                <!-- Error Icon -->
+                <svg class="hdpc-icon hdpc-error" id="hdpc-error-icon" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                </svg>
+
+                <div id="hdpc-form-view">
+                    <div class="hdpc-title">Henry Data Privacy Checkout</div>
+                    <div class="hdpc-subtitle">This website is protected. Enter your HPAC to proceed.</div>
+                    <input type="text" id="hdpc-code-input" class="hdpc-input" placeholder="Enter Accredited Code..." autocomplete="off">
+                    <button id="hdpc-proceed-btn" class="hdpc-btn">Confirm & Proceed</button>
+                </div>
+
+                <div class="hdpc-status" id="hdpc-loading-view">
+                    <div class="hdpc-spinner"></div>
+                    <div class="hdpc-status-text" id="hdpc-loading-text">Reading...</div>
+                </div>
+
+                <button id="hdpc-register-btn" class="hdpc-redirect-btn">I have not created an HPAC</button>
+            </div>
+        `;
+        document.body.appendChild(container);
+
+        // 5. DYNAMICALLY LOAD FIREBASE (v9 Modular SDK via CDN)
+        let getFirestore, collection, query, where, getDocs;
+        try {
+            const firebaseAppModule = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+            const firebaseFirestoreModule = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+            
+            const app = firebaseAppModule.initializeApp(firebaseConfig);
+            const db = firebaseFirestoreModule.getFirestore(app);
+            
+            getFirestore = firebaseFirestoreModule.getFirestore;
+            collection = firebaseFirestoreModule.collection;
+            query = firebaseFirestoreModule.query;
+            where = firebaseFirestoreModule.where;
+            getDocs = firebaseFirestoreModule.getDocs;
+            
+            // Re-assign db for scope
+            window.hdpcDb = db; 
+        } catch (error) {
+            console.error("HDPC Initialization Error:", error);
+        }
+
+        // 6. EVENT LISTENERS & LOGIC
+        const proceedBtn = document.getElementById('hdpc-proceed-btn');
+        const codeInput = document.getElementById('hdpc-code-input');
+        const formView = document.getElementById('hdpc-form-view');
+        const loadingView = document.getElementById('hdpc-loading-view');
+        const loadingText = document.getElementById('hdpc-loading-text');
+        const successIcon = document.getElementById('hdpc-success-icon');
+        const errorIcon = document.getElementById('hdpc-error-icon');
+        const registerBtn = document.getElementById('hdpc-register-btn');
+
+        registerBtn.addEventListener('click', () => {
+            // Redirect to your main index.html (Update this URL to your actual hosted HDPA URL)
+            window.location.href = "https://hgt-policy.web.app/"; 
+        });
+
+        proceedBtn.addEventListener('click', async () => {
+            const hpacValue = codeInput.value.trim();
+            if (!hpacValue) return;
+
+            // Show Loading State
+            formView.style.display = 'none';
+            loadingView.style.display = 'flex';
+            
+            setTimeout(() => { loadingText.innerText = "Confirming..."; }, 800);
+
+            try {
+                // Query Firestore for the HPAC
+                const usersRef = collection(window.hdpcDb, "users");
+                const q = query(usersRef, where("hpac", "==", hpacValue));
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    // CODE MATCHES - ACCESS GRANTED
+                    loadingView.style.display = 'none';
+                    successIcon.style.display = 'inline-block';
+                    
+                    const titleEl = document.createElement('div');
+                    titleEl.className = 'hdpc-title';
+                    titleEl.style.marginTop = '15px';
+                    titleEl.innerText = 'Access Granted';
+                    successIcon.after(titleEl);
+
+                    // Remove the shield and restore website access after 1.5 seconds
+                    setTimeout(() => {
+                        container.style.opacity = '0';
+                        setTimeout(() => {
+                            container.remove();
+                            blockerStyle.remove(); // Unblur and reveal the website
+                        }, 600);
+                    }, 1500);
+
+                } else {
+                    // CODE DOES NOT MATCH - ACCESS DECLINED
+                    loadingView.style.display = 'none';
+                    errorIcon.style.display = 'inline-block';
+                    registerBtn.style.display = 'block';
+
+                    const titleEl = document.createElement('div');
+                    titleEl.className = 'hdpc-title';
+                    titleEl.style.marginTop = '15px';
+                    titleEl.style.color = '#d32f2f';
+                    titleEl.innerText = 'Access Declined';
+                    errorIcon.after(titleEl);
+                }
+            } catch (error) {
+                console.error("HDPC Verification Error:", error);
+                loadingText.innerText = "Connection Error. Try Again.";
+                loadingText.style.color = "#d32f2f";
+                setTimeout(() => {
+                    loadingView.style.display = 'none';
+                    formView.style.display = 'block';
+                }, 2000);
+            }
+        });
+    });
+})();
