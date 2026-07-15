@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Selfont|HPAC Generator</title>
+
+  <!-- ===== OPEN GRAPH / SOCIAL SHARING (INDEXABLE BY GOOGLE) ===== -->
+  <meta property="og:title" content="Selfont — Create Your HPAC Code for HGT Guardian SDK" />
+  <meta property="og:description" content="Generate your HPAC code for HGT Guardian SDK. Secure. Private. Instant. Developers can access the SDK portal with this unique code." />
+  <meta property="og:image" content="https://cdn-icons-png.flaticon.com/512/2906/2906274.png" />
+  <meta property="og:image:width" content="512" />
+  <meta property="og:image:height" content="512" />
+  <meta property="og:url" content="https://selfont.com" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Selfont — Create Your HPAC Code for HGT Guardian SDK" />
+  <meta name="twitter:description" content="Generate your HPAC code for HGT Guardian SDK. Secure. Private. Instant." />
+  <meta name="twitter:image" content="https://cdn-icons-png.flaticon.com/512/2906/2906274.png" />
+
+  <!-- ===== SEO / INDEXABLE CONTENT ===== -->
+  <meta name="description" content="Selfont - Generate your HPAC code for HGT Guardian SDK. Secure, private, and instant access for developers to integrate the SDK." />
+  <meta name="keywords" content="HPAC code, HGT Guardian SDK, developer portal, security, privacy, selfont" />
+  <link rel="canonical" href="https://selfont.com" />
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js">
+  </script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js">
+  </script>
+
+  <style>
+    /* ===== RESET & FULLSCREEN ANDROID ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0a1628;
+      color: #eaeef2;
+      padding: 0;
+      margin: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ===== THEME VARIABLES ===== */
+    :root {
+      --bg-primary: #0a1628;
+      --bg-secondary: #0d1b2a;
+      --bg-card: #111e33;
+      --bg-input: #0a1628;
+      --border-color: #1a2d4a;
+      --text-primary: #eaeef2;
+      --text-secondary: #9ca3af;
+      --text-muted: #6b7a93;
+      --accent: #7c3aed;
+      --accent-hover: #8b5cf6;
+      --accent-glow: rgba(124, 58, 237, 0.3);
+      --success: #22c55e;
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.15);
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+      --radius: 28px;
+      --radius-sm: 16px;
+      --safe-top: env(safe-area-inset-top, 20px);
+      --safe-bottom: env(safe-area-inset-bottom, 20px);
+    }
+
+    [data-theme="light"] {
+      --bg-primary: #f0f4ff;
+      --bg-secondary: #e6edf8;
+      --bg-card: #ffffff;
+      --bg-input: #f0f4ff;
+      --border-color: #c5d0e0;
+      --text-primary: #0a1628;
+      --text-secondary: #2d3a4f;
+      --text-muted: #5a6b82;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ===== FULLSCREEN APP CONTAINER ===== */
+    #app {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      background: var(--bg-primary);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding-top: var(--safe-top);
+      padding-bottom: var(--safe-bottom);
+    }
+
+    /* ===== SCROLLABLE CONTENT ===== */
+    .scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px 20px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* ===== THEME TOGGLE (top-left) ===== */
+    .theme-toggle {
+      position: fixed;
+      top: calc(12px + var(--safe-top));
+      left: 16px;
+      z-index: 999;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 40px;
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      font-weight: 600;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+    .theme-toggle .icon {
+      font-size: 1rem;
+    }
+
+    /* ===== CARD ===== */
+    .card {
+      max-width: 480px;
+      width: 100%;
+      margin: 0 auto;
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 24px 20px 20px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border-color);
+    }
+
+    /* ===== LOGO ===== */
+    .logo {
+      font-size: 2.4rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #a78bfa, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-align: center;
+    }
+    .logo-sub {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      margin-top: 2px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 14px;
+    }
+    .logo-sub strong {
+      color: #c4b5fd;
+    }
+
+    /* ===== IMAGE ===== */
+    .og-image {
+      text-align: center;
+      margin: 12px 0;
+    }
+    .og-image img {
+      max-width: 120px;
+      width: 100%;
+      height: auto;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      display: block;
+      margin: 0 auto;
+      padding: 8px;
+      background: var(--bg-secondary);
+    }
+
+    /* ===== BUTTONS ===== */
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 14px 0 4px;
+    }
+    .btn {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 12px 28px;
+      border-radius: 60px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: 0.2s;
+      touch-action: manipulation;
+      min-height: 50px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn:active {
+      transform: scale(0.96);
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .btn-primary:active {
+      background: var(--accent-hover);
+    }
+    .btn-primary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+      background: var(--text-muted);
+      border-color: var(--text-muted);
+    }
+    .btn-outline {
+      background: transparent;
+      border-color: var(--border-color);
+    }
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+      border-color: var(--danger);
+    }
+    .btn-sm {
+      padding: 8px 16px;
+      font-size: 0.8rem;
+      min-height: 38px;
+    }
+    .btn-block {
+      width: 100%;
+      justify-content: center;
+    }
+    .btn-success {
+      background: var(--success);
+      color: #fff;
+      border-color: var(--success);
+    }
+    .btn-success:active {
+      opacity: 0.8;
+    }
+
+    /* ===== PROGRESS BAR WITH TIME ===== */
+    .progress-wrap {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-secondary);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 6px;
+      position: relative;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), #a78bfa);
+      border-radius: 10px;
+      transition: width 0.5s ease;
+    }
+    .progress-time {
+      text-align: right;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+
+    /* ===== FORM ===== */
+    .form-group {
+      margin-bottom: 14px;
+      text-align: left;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--bg-input);
+      border: 1.5px solid var(--border-color);
+      border-radius: 60px;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      outline: none;
+      transition: 0.2s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    .form-group textarea {
+      border-radius: var(--radius-sm);
+      min-height: 70px;
+      resize: vertical;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 420px) {
+      .form-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+    }
+
+    /* ===== HPAC DISPLAY ===== */
+    .hpac-box {
+      background: var(--bg-input);
+      border: 1.5px dashed var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      text-align: center;
+      font-family: 'Courier New', monospace;
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: #c4b5fd;
+      word-break: break-all;
+      margin: 12px 0;
+    }
+    .hpac-box .sub {
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: var(--text-muted);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      letter-spacing: 0;
+      margin-top: 4px;
+    }
+
+    /* ===== BADGE ===== */
+    .badge {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 60px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-active {
+      background: rgba(34, 197, 94, 0.2);
+      color: #22c55e;
+      border: 1px solid #22c55e;
+    }
+    .badge-suspended {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+      border: 1px solid #ef4444;
+    }
+
+    /* ===== POPUP OVERLAY (Android bottom-sheet style) ===== */
+    .popup-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 1000;
+      padding: 0;
+      animation: fadeIn 0.25s ease;
+    }
+    .popup-overlay.active {
+      display: flex;
+    }
+    @keyframes fadeIn {
+      0% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+    .popup-box {
+      background: var(--bg-card);
+      border-radius: var(--radius) var(--radius) 0 0;
+      max-width: 480px;
+      width: 100%;
+      padding: 28px 24px 32px;
+      box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.5);
+      border-top: 1px solid var(--border-color);
+      animation: slideUp 0.3s ease;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    @keyframes slideUp {
+      0% {
+        transform: translateY(100%);
+      }
+      100% {
+        transform: translateY(0);
+      }
+    }
+    .popup-box .close-btn {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.8rem;
+      cursor: pointer;
+      padding: 4px 8px;
+    }
+    .popup-box .handle {
+      width: 40px;
+      height: 4px;
+      background: var(--text-muted);
+      border-radius: 4px;
+      margin: 0 auto 16px;
+      opacity: 0.4;
+    }
+
+    /* ===== DENIED BOARD ===== */
+    .denied-board {
+      display: none;
+      background: var(--danger-bg);
+      border: 2px solid var(--danger);
+      border-radius: var(--radius);
+      padding: 24px 16px;
+      text-align: center;
+      margin: 12px 0;
+    }
+    .denied-board.active {
+      display: block;
+    }
+    .denied-board .big-x {
+      font-size: 3.6rem;
+      color: var(--danger);
+      font-weight: 900;
+      line-height: 1;
+    }
+    .denied-board h2 {
+      color: var(--danger);
+      font-size: 1.6rem;
+      margin: 4px 0;
+    }
+    .denied-board p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    /* ===== TRANSLATION POPUP ===== */
+    .translate-popup {
+      text-align: center;
+    }
+    .translate-popup select {
+      background: var(--bg-input);
+      border: 1.5px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 14px 18px;
+      border-radius: 60px;
+      font-size: 1rem;
+      width: 100%;
+      margin: 12px 0;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    /* ===== EMAIL SELECTION POPUP ===== */
+    .email-select-popup {
+      text-align: center;
+    }
+    .email-select-popup .email-option {
+      display: block;
+      width: 100%;
+      padding: 14px 18px;
+      background: var(--bg-input);
+      border: 1.5px solid var(--border-color);
+      border-radius: 60px;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: 0.2s;
+      text-align: center;
+    }
+    .email-select-popup .email-option:hover,
+    .email-select-popup .email-option:active {
+      border-color: var(--accent);
+      background: var(--accent-glow);
+    }
+    .email-select-popup .email-option .label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      display: block;
+      margin-top: 2px;
+    }
+    .email-select-popup .custom-email-input {
+      margin-top: 8px;
+    }
+
+    /* ===== FOOTER ===== */
+    .footer {
+      margin-top: 20px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border-color);
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+    }
+    .footer .brand {
+      font-weight: 700;
+      color: var(--text-secondary);
+      letter-spacing: 0.04em;
+    }
+
+    /* ===== HIDDEN ===== */
+    .hidden {
+      display: none !important;
+    }
+    .mt-1 {
+      margin-top: 10px;
+    }
+    .mt-2 {
+      margin-top: 20px;
+    }
+    .mb-1 {
+      margin-bottom: 10px;
+    }
+    .text-center {
+      text-align: center;
+    }
+    .flex-center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .gap-1 {
+      gap: 10px;
+    }
+
+    /* ===== ANDROID SCROLLBAR ===== */
+    .scroll-area::-webkit-scrollbar {
+      width: 3px;
+    }
+    .scroll-area::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .scroll-area::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 10px;
+    }
+
+    /* ===== NOTIFICATION BANNER ===== */
+    .notif-banner {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .notif-banner span {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+    .notif-banner .btn {
+      padding: 6px 18px;
+      min-height: 36px;
+      font-size: 0.8rem;
+    }
+
+    /* ===== EMAIL UPFRONT (hidden after selection) ===== */
+    .email-upfront {
+      text-align: center;
+      padding: 8px 0;
+    }
+    .email-upfront .form-group {
+      max-width: 320px;
+      margin: 0 auto 12px;
+    }
+
+    /* ===== LANGUAGE SELECTOR (top-right) ===== */
+    .lang-selector {
+      position: fixed;
+      top: calc(12px + var(--safe-top));
+      right: 16px;
+      z-index: 999;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 40px;
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      font-weight: 600;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+    .lang-selector select {
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-size: 0.8rem;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+    }
+    .lang-selector select option {
+      background: var(--bg-card);
+      color: var(--text-primary);
+    }
+
+    /* ===== AUTHENTICATING OVERLAY ===== */
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .auth-overlay.active {
+      display: flex;
+    }
+    .auth-overlay .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid var(--border-color);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+    .auth-overlay p {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app">
+
+    <!-- THEME TOGGLE (top-left) -->
+    <div class="theme-toggle" id="themeToggle">
+      <span class="icon" id="themeIcon">🌙</span>
+      <span id="themeLabel">Dark</span>
+    </div>
+
+    <!-- LANGUAGE SELECTOR (top-right) -->
+    <div class="lang-selector" id="langSelector">
+      <span>🌐</span>
+      <select id="langSelect">
+        <option value="en">English</option>
+        <option value="es">Español</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="pt">Português</option>
+        <option value="it">Italiano</option>
+        <option value="ru">Русский</option>
+        <option value="zh">中文</option>
+        <option value="ja">日本語</option>
+        <option value="ko">한국어</option>
+        <option value="ar">العربية</option>
+        <option value="hi">हिन्दी</option>
+      </select>
+    </div>
+
+    <!-- POPUP OVERLAY (bottom sheet) -->
+    <div class="popup-overlay" id="popupOverlay">
+      <div class="popup-box" id="popupBox">
+        <div class="handle"></div>
+        <button class="close-btn" id="popupClose">&times;</button>
+        <div id="popupContent">
+          <!-- dynamic content -->
+        </div>
+      </div>
+    </div>
+
+    <!-- AUTHENTICATING OVERLAY -->
+    <div class="auth-overlay" id="authOverlay">
+      <div class="spinner"></div>
+      <p id="authMessage">Authenticating...</p>
+    </div>
+
+    <!-- MAIN SCROLL AREA -->
+    <div class="scroll-area" id="scrollArea">
+
+      <!-- CARD -->
+      <div class="card" id="appContainer">
+
+        <!-- LOGO -->
+        <div class="logo">Selfont</div>
+        <div class="logo-sub">
+          <strong>SeloIfont</strong> &middot; Sally Font &middot;
+          <span style="color:var(--text-muted);">Create your HPAC code for HGT Guardian SDK</span>
+        </div>
+
+        <!-- OG IMAGE -->
+        <div class="og-image">
+          <img src="https://cdn-icons-png.flaticon.com/512/2906/2906274.png" alt="Selfont" />
+        </div>
+
+        <!-- NOTIFICATION PERMISSION BANNER -->
+        <div class="notif-banner" id="notifBanner">
+          <span>🔔 Enable notifications for updates</span>
+          <button class="btn btn-primary btn-sm" id="notifAllowBtn">Allow</button>
+        </div>
+
+        <!-- BUTTONS: Get Started / Login (hidden after signup) -->
+        <div class="btn-group" id="mainButtons">
+          <button class="btn btn-primary" id="getStartedBtn">🚀 Get Started</button>
+          <button class="btn btn-outline" id="loginBtn">🔑 Login</button>
+        </div>
+
+        <!-- ====== EMAIL UPFRONT (visible on first load) ====== -->
+        <div id="emailUpfront" class="email-upfront" style="margin-top:16px;">
+          <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:6px;">Select or enter your email to continue</p>
+          <div class="form-group">
+            <input type="email" id="upfrontEmail" placeholder="you@example.com" />
+          </div>
+          <button class="btn btn-primary btn-block" id="upfrontEmailBtn">Continue</button>
+        </div>
+
+        <!-- ====== LOGIN SECTION ====== -->
+        <div id="loginSection" class="hidden" style="margin-top:16px;">
+          <div class="form-group">
+            <label>Enter your HPAC code</label>
+            <input type="text" id="loginHpacInput" placeholder="e.g. HGT-12345-HPAC" />
+          </div>
+          <button class="btn btn-primary btn-block" id="loginSubmitBtn">Login</button>
+          <div id="loginStatus" style="margin-top:10px;font-weight:600;text-align:center;"></div>
+          <div class="denied-board" id="deniedBoard">
+            <div class="big-x">✕</div>
+            <h2>ACCESS DENIED</h2>
+            <p>Invalid code. This HPAC has been suspended or blocked.<br />Check the code and try again later.</p>
+          </div>
+        </div>
+
+        <!-- ====== FORM SECTION (Get Started) ====== -->
+        <div id="formSection" class="hidden" style="margin-top:16px;">
+          <div class="progress-wrap">
+            <div class="progress-bar" id="progressBar" style="width:0%;"></div>
+          </div>
+          <div class="progress-time" id="progressTime">0%</div>
+
+          <div class="form-row">
+            <div class="form-group"><label>Name *</label><input type="text" id="fName" /></div>
+            <div class="form-group"><label>Surname *</label><input type="text" id="fSurname" /></div>
+          </div>
+          <div class="form-group"><label>Email *</label><input type="email" id="fEmail" /></div>
+          <div class="form-group"><label>Passage URL</label><input type="url" id="fPassage" placeholder="https://..." /></div>
+          <div class="form-group"><label>Developments</label><textarea id="fDevelopments" placeholder="Describe your project..."></textarea></div>
+          <div class="form-group"><label>Programming Language *</label>
+            <select id="fLanguage">
+              <option value="">Select...</option>
+              <option value="Web">Web (HTML/CSS/JS)</option>
+              <option value="Java">Java</option>
+              <option value="Objective-C">Objective-C</option>
+              <option value="Swift">Swift</option>
+              <option value="Python">Python</option>
+              <option value="C#">C#</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <button class="btn btn-primary btn-block" id="proceedBtn" disabled>Proceed</button>
+        </div>
+
+        <!-- ====== DASHBOARD SECTION ====== -->
+        <div id="dashboardSection" class="hidden" style="margin-top:16px;">
+          <h2 style="font-weight:300;color:var(--text-secondary);font-size:1.2rem;">📊 Node Dashboard</h2>
+
+          <div class="hpac-box" id="dashboardHpac">
+            HGT-00000-HPAC
+            <div class="sub">Your HPAC code</div>
+          </div>
+
+          <div class="flex-center">
+            <span class="badge badge-active" id="statusBadge">● Active</span>
+            <button class="btn btn-sm btn-outline" id="dashCopyBtn">📋 Copy</button>
+          </div>
+
+          <!-- description / about (SEO friendly) -->
+          <div style="margin-top:16px;padding:14px;background:var(--bg-secondary);border-radius:var(--radius-sm);border-left:4px solid var(--accent);">
+            <p style="color:var(--text-secondary);line-height:1.7;font-size:0.9rem;">
+              <strong>About this HPAC code:</strong><br />
+              This HPAC code is a pass code for developers to use in accessing the HGT Guardian SDK portal.
+              Without this code, they cannot access or collect the SDK to integrate it on their website.
+              <br /><br />
+              The CEO of HGT (Henry Global Tech Industry) has increased his security limits.
+              His security has been increased to make sure developers comply with his privacy and policy.
+              <br /><br />
+              For more inquiry, visit this link:
+              <a href="#" id="inquiryLink" style="color:var(--accent);text-decoration:underline;">https://hgt-policy.firebaseapp.com/inquiry</a>
+              <br /><br />
+              <span style="display:block;border-top:1px solid var(--border-color);padding-top:10px;margin-top:6px;">
+                [Note] – All developers are meant to comply with the privacy and policy of the HGT Guardian SDK. Thank you.
+                <br />
+                <strong style="color:var(--danger);">Keep this code secret. Do not share it with anyone.</strong>
+              </span>
+            </p>
+          </div>
+
+          <div class="denied-board" id="dashDeniedBoard">
+            <div class="big-x">✕</div>
+            <h2>ACCESS DENIED</h2>
+            <p>This HPAC code has been suspended or blocked by an administrator.</p>
+          </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer">
+          Powered by<br />
+          <span class="brand">HENRY GLOBAL TECH INDUSTRY (HGT)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    // FIREBASE
+    // ============================================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyA7p9HknzV6mmX3Fe78U-l46DqY0fikC58",
+      authDomain: "hgt-policy.firebaseapp.com",
+      projectId: "hgt-policy",
+      storageBucket: "hgt-policy.firebasestorage.app",
+      messagingSenderId: "440193588775",
+      appId: "1:440193588775:web:49fe3fb7d8ee3e008cf802",
+      measurementId: "G-X18YPTYQCE"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ============================================================
+    // DOM REFS
+    // ============================================================
+    const $ = id => document.getElementById(id);
+    const themeToggle = $('themeToggle');
+    const themeIcon = $('themeIcon');
+    const themeLabel = $('themeLabel');
+    const getStartedBtn = $('getStartedBtn');
+    const loginBtn = $('loginBtn');
+    const loginSection = $('loginSection');
+    const formSection = $('formSection');
+    const dashboardSection = $('dashboardSection');
+    const loginHpacInput = $('loginHpacInput');
+    const loginSubmitBtn = $('loginSubmitBtn');
+    const loginStatus = $('loginStatus');
+    const deniedBoard = $('deniedBoard');
+    const dashDeniedBoard = $('dashDeniedBoard');
+    const progressBar = $('progressBar');
+    const progressTime = $('progressTime');
+    const proceedBtn = $('proceedBtn');
+    const fName = $('fName');
+    const fSurname = $('fSurname');
+    const fEmail = $('fEmail');
+    const fPassage = $('fPassage');
+    const fDevelopments = $('fDevelopments');
+    const fLanguage = $('fLanguage');
+    const dashboardHpac = $('dashboardHpac');
+    const statusBadge = $('statusBadge');
+    const dashCopyBtn = $('dashCopyBtn');
+    const popupOverlay = $('popupOverlay');
+    const popupContent = $('popupContent');
+    const popupClose = $('popupClose');
+    const inquiryLink = $('inquiryLink');
+    const upfrontEmail = $('upfrontEmail');
+    const upfrontEmailBtn = $('upfrontEmailBtn');
+    const emailUpfront = $('emailUpfront');
+    const notifBanner = $('notifBanner');
+    const notifAllowBtn = $('notifAllowBtn');
+    const langSelect = $('langSelect');
+    const mainButtons = $('mainButtons');
+    const authOverlay = $('authOverlay');
+    const authMessage = $('authMessage');
+
+    // ============================================================
+    // STATE
+    // ============================================================
+    let currentHpac = '';
+    let currentDocId = '';
+    let currentStatus = 'active';
+    let userEmail = '';
+    let progressTimer = null;
+    let progressValue = 0;
+    let isSignedUp = false;
+    let selectedLanguage = 'en';
+
+    // ============================================================
+    // THEME
+    // ============================================================
+    let darkMode = true;
+    themeToggle.addEventListener('click', () => {
+      darkMode = !darkMode;
+      document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+      themeIcon.textContent = darkMode ? '🌙' : '☀️';
+      themeLabel.textContent = darkMode ? 'Dark' : 'Light';
+    });
+
+    // ============================================================
+    // LANGUAGE SELECTOR (triggers browser translation)
+    // ============================================================
+    langSelect.addEventListener('change', function() {
+      const lang = this.value;
+      selectedLanguage = lang;
+      localStorage.setItem('selfont_lang', lang);
+
+      showPopup(`
+        <div class="translate-popup">
+          <h3 style="margin-bottom:6px;">🌐 Language selected: ${this.options[this.selectedIndex].text}</h3>
+          <p style="color:var(--text-secondary);font-size:0.95rem;line-height:1.6;">
+            Your browser can translate this page.<br /><br />
+            <strong>Chrome/Edge:</strong> Right-click → "Translate to [Language]"<br />
+            <strong>Firefox:</strong> Right-click → "Translate page"<br />
+            <strong>Safari:</strong> Use the translate icon in the address bar<br /><br />
+            The app will now try to use your browser's built-in translator.
+          </p>
+          <button class="btn btn-primary btn-block" onclick="document.getElementById('popupOverlay').classList.remove('active')">Got it</button>
+        </div>
+      `);
+
+      const meta = document.createElement('meta');
+      meta.setAttribute('http-equiv', 'Content-Language');
+      meta.content = lang;
+      document.head.appendChild(meta);
+
+      if (lang !== 'en') {
+        document.documentElement.lang = lang;
+        console.log('Language set to:', lang);
+      }
+    });
+
+    // Restore language preference
+    const savedLang = localStorage.getItem('selfont_lang');
+    if (savedLang) {
+      langSelect.value = savedLang;
+      selectedLanguage = savedLang;
+      document.documentElement.lang = savedLang;
+    }
+
+    // ============================================================
+    // NOTIFICATION PERMISSION (instant + button trigger)
+    // ============================================================
+    function requestNotificationPermission() {
+      if (!('Notification' in window)) return;
+      if (Notification.permission === 'granted') {
+        notifBanner.style.display = 'none';
+        return;
+      }
+      if (Notification.permission === 'denied') {
+        notifBanner.style.display = 'none';
+        return;
+      }
+      Notification.requestPermission().then(perm => {
+        if (perm === 'granted') {
+          notifBanner.style.display = 'none';
+          showPopup('<p style="color:var(--success);font-weight:600;">✅ Notifications enabled!</p>');
+        } else {
+          showPopup('<p style="color:var(--text-secondary);">⚠️ Notifications disabled. You can enable later.</p>');
+        }
+      });
+    }
+
+    setTimeout(() => {
+      requestNotificationPermission();
+    }, 500);
+
+    notifAllowBtn.addEventListener('click', () => {
+      requestNotificationPermission();
+    });
+
+    // ============================================================
+    // POPUP HELPERS
+    // ============================================================
+    function showPopup(html) {
+      popupContent.innerHTML = html;
+      popupOverlay.classList.add('active');
+      const box = document.getElementById('popupBox');
+      if (box) box.scrollTop = 0;
+    }
+
+    popupClose.addEventListener('click', () => popupOverlay.classList.remove('active'));
+    popupOverlay.addEventListener('click', (e) => {
+      if (e.target === popupOverlay) popupOverlay.classList.remove('active');
+    });
+
+    function showAuth(message) {
+      authMessage.textContent = message || 'Authenticating...';
+      authOverlay.classList.add('active');
+    }
+
+    function hideAuth() {
+      authOverlay.classList.remove('active');
+    }
+
+    function copyText(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        const toast = document.createElement('div');
+        toast.style.cssText =
+          'background:var(--success);color:#fff;padding:10px 20px;border-radius:60px;font-weight:600;text-align:center;margin-top:12px;';
+        toast.textContent = '✅ Copied to clipboard!';
+        const content = document.getElementById('popupContent');
+        const old = content.querySelector('.copy-toast');
+        if (old) old.remove();
+        toast.className = 'copy-toast';
+        content.appendChild(toast);
+        setTimeout(() => { toast.style.opacity = '0';
+          toast.style.transition = 'opacity 0.5s'; }, 2000);
+        setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3000);
+      }).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+        const toast = document.createElement('div');
+        toast.style.cssText =
+          'background:var(--success);color:#fff;padding:10px 20px;border-radius:60px;font-weight:600;text-align:center;margin-top:12px;';
+        toast.textContent = '✅ Copied!';
+        toast.className = 'copy-toast';
+        document.getElementById('popupContent').appendChild(toast);
+        setTimeout(() => { toast.style.opacity = '0';
+          toast.style.transition = 'opacity 0.5s'; }, 2000);
+        setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3000);
+      });
+    }
+
+    // ============================================================
+    // EMAIL SELECTION POPUP (with suggested emails)
+    // ============================================================
+    function showEmailSelectionPopup() {
+      const savedEmail = localStorage.getItem('selfont_email') || '';
+      const commonEmails = [
+        { email: savedEmail || '', label: 'My saved email' },
+        { email: 'developer@gmail.com', label: 'Gmail' },
+        { email: 'dev@outlook.com', label: 'Outlook' },
+        { email: 'admin@company.com', label: 'Work email' }
+      ];
+
+      const uniqueEmails = [];
+      const seen = new Set();
+      commonEmails.forEach(item => {
+        if (item.email && !seen.has(item.email)) {
+          seen.add(item.email);
+          uniqueEmails.push(item);
+        }
+      });
+
+      let html = `
+        <div class="email-select-popup">
+          <h3 style="margin-bottom:6px;">📧 Select your email</h3>
+          <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:12px;">Choose an email or enter a new one</p>
+      `;
+
+      if (uniqueEmails.length > 0) {
+        uniqueEmails.forEach(item => {
+          html += `
+            <button class="email-option" data-email="${item.email}">
+              ${item.email}
+              <span class="label">${item.label}</span>
+            </button>
+          `;
+        });
+      }
+
+      html += `
+        <div class="custom-email-input">
+          <div class="form-group" style="margin-bottom:0;">
+            <input type="email" id="customEmailInput" placeholder="Enter your email..." value="${savedEmail}" />
+          </div>
+          <button class="btn btn-primary btn-block mt-1" id="emailConfirmBtn">Confirm Email</button>
+        </div>
+        </div>
+      `;
+
+      showPopup(html);
+
+      setTimeout(() => {
+        document.querySelectorAll('.email-option').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const email = this.dataset.email;
+            if (email) {
+              selectEmail(email);
+            }
+          });
+        });
+
+        const confirmBtn = document.getElementById('emailConfirmBtn');
+        const customInput = document.getElementById('customEmailInput');
+        if (confirmBtn && customInput) {
+          confirmBtn.addEventListener('click', () => {
+            const email = customInput.value.trim();
+            if (email && email.includes('@')) {
+              selectEmail(email);
+            } else {
+              showPopup('<p style="color:var(--danger);">⚠️ Please enter a valid email address.</p>');
+            }
+          });
+          customInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') confirmBtn.click();
+          });
+        }
+      }, 100);
+    }
+
+    function selectEmail(email) {
+      userEmail = email;
+      localStorage.setItem('selfont_email', email);
+      upfrontEmail.value = email;
+      emailUpfront.classList.add('hidden');
+      mainButtons.classList.remove('hidden');
+      popupOverlay.classList.remove('active');
+      showPopup(`<p style="color:var(--success);font-weight:600;">✅ Email selected: ${email}</p>`);
+      fEmail.value = email;
+    }
+
+    // ============================================================
+    // EMAIL UPFRONT (initial)
+    // ============================================================
+    setTimeout(() => {
+      const hasEmail = localStorage.getItem('selfont_email');
+      if (hasEmail) {
+        userEmail = hasEmail;
+        upfrontEmail.value = hasEmail;
+        fEmail.value = hasEmail;
+        emailUpfront.classList.add('hidden');
+        mainButtons.classList.remove('hidden');
+        showPopup(`<p style="color:var(--success);font-weight:600;">👋 Welcome back! Email: ${hasEmail}</p>`);
+      } else {
+        setTimeout(() => {
+          showEmailSelectionPopup();
+        }, 300);
+      }
+    }, 600);
+
+    upfrontEmailBtn.addEventListener('click', () => {
+      const email = upfrontEmail.value.trim();
+      if (!email || !email.includes('@')) {
+        showPopup('<p style="color:var(--danger);">⚠️ Please enter a valid email address.</p>');
+        return;
+      }
+      selectEmail(email);
+    });
+
+    // ============================================================
+    // PROGRESS BAR WITH TIME COUNT
+    // ============================================================
+    function startProgressTimer() {
+      if (progressTimer) clearInterval(progressTimer);
+      progressValue = 0;
+      progressBar.style.width = '0%';
+      progressTime.textContent = '0%';
+
+      progressTimer = setInterval(() => {
+        const fields = [fName, fSurname, fEmail, fLanguage];
+        const filled = fields.filter(el => el.value.trim() !== '').length;
+        const total = fields.length;
+        const pct = Math.round((filled / total) * 100);
+
+        if (progressValue < pct) {
+          progressValue += 1;
+          if (progressValue > pct) progressValue = pct;
+        } else if (progressValue > pct) {
+          progressValue = pct;
+        }
+
+        progressBar.style.width = progressValue + '%';
+        progressTime.textContent = progressValue + '%';
+
+        proceedBtn.disabled = progressValue < 100;
+
+        if (progressValue >= 100) {
+          clearInterval(progressTimer);
+          progressTimer = null;
+          proceedBtn.disabled = false;
+          proceedBtn.style.opacity = '1';
+        } else {
+          proceedBtn.style.opacity = '0.5';
+        }
+      }, 300);
+    }
+
+    // ============================================================
+    // RESET UI
+    // ============================================================
+    function resetUI() {
+      loginSection.classList.add('hidden');
+      formSection.classList.add('hidden');
+      dashboardSection.classList.add('hidden');
+      deniedBoard.classList.remove('active');
+      dashDeniedBoard.classList.remove('active');
+      loginStatus.textContent = '';
+      if (progressTimer) {
+        clearInterval(progressTimer);
+        progressTimer = null;
+      }
+    }
+
+    // ============================================================
+    // HIDE MAIN BUTTONS AFTER SIGNUP
+    // ============================================================
+    function hideMainButtons() {
+      mainButtons.classList.add('hidden');
+    }
+
+    // ============================================================
+    // SHOW LOGIN
+    // ============================================================
+    loginBtn.addEventListener('click', () => {
+      resetUI();
+      loginSection.classList.remove('hidden');
+    });
+
+    // ============================================================
+    // SHOW FORM
+    // ============================================================
+    getStartedBtn.addEventListener('click', () => {
+      resetUI();
+      formSection.classList.remove('hidden');
+      if (userEmail) fEmail.value = userEmail;
+      startProgressTimer();
+    });
+
+    // ============================================================
+    // LOGIN LOGIC
+    // ============================================================
+    loginSubmitBtn.addEventListener('click', async () => {
+      const code = loginHpacInput.value.trim().toUpperCase();
+      if (!code) {
+        loginStatus.textContent = '⚠️ Please enter your HPAC code.';
+        loginStatus.style.color = 'var(--danger)';
+        return;
+      }
+      loginStatus.textContent = '⏳ Authenticating...';
+      loginStatus.style.color = 'var(--text-secondary)';
+      deniedBoard.classList.remove('active');
+      showAuth('Checking credentials...');
+
+      try {
+        const snapshot = await db.collection('hpac_codes').where('code', '==', code).get();
+        hideAuth();
+        if (snapshot.empty) {
+          loginStatus.textContent = '❌ Invalid code. Not found.';
+          loginStatus.style.color = 'var(--danger)';
+          deniedBoard.classList.add('active');
+          return;
+        }
+        const doc = snapshot.docs[0];
+        const data = doc.data();
+        if (data.status === 'suspended') {
+          loginStatus.textContent = '⛔ Access Denied. This code has been suspended.';
+          loginStatus.style.color = 'var(--danger)';
+          deniedBoard.classList.add('active');
+          return;
+        }
+        loginStatus.textContent = '✅ Logged in successfully!';
+        loginStatus.style.color = 'var(--success)';
+        currentHpac = data.code;
+        currentDocId = doc.id;
+        currentStatus = data.status || 'active';
+        renderDashboard(data);
+        resetUI();
+        dashboardSection.classList.remove('hidden');
+        hideMainButtons();
+        showPopup(`
+          <h3 style="color:var(--success);">✅ Logged in successfully!</h3>
+          <p style="color:var(--text-secondary);">Welcome back, ${data.name || 'Developer'}.</p>
+          <button class="btn btn-primary btn-block" onclick="document.getElementById('popupOverlay').classList.remove('active')">Continue</button>
+        `);
+      } catch (e) {
+        hideAuth();
+        loginStatus.textContent = '⚠️ Error: ' + e.message;
+        loginStatus.style.color = 'var(--danger)';
+      }
+    });
+
+    // ============================================================
+    // PROCEED (create new HPAC)
+    // ============================================================
+    proceedBtn.addEventListener('click', async () => {
+      const name = fName.value.trim();
+      const surname = fSurname.value.trim();
+      const email = fEmail.value.trim();
+      const language = fLanguage.value;
+      if (!name || !surname || !email || !language) {
+        alert('Please fill all required fields.');
+        return;
+      }
+
+      const hpac = 'HGT-' + String(Math.floor(Math.random() * 100000)).padStart(5, '0') + '-HPAC';
+      const data = {
+        name,
+        surname,
+        email,
+        passageUrl: fPassage.value.trim(),
+        developments: fDevelopments.value.trim(),
+        language,
+        code: hpac,
+        status: 'active',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      try {
+        showAuth('Generating your HPAC code...');
+        const docRef = await db.collection('hpac_codes').add(data);
+        hideAuth();
+        currentHpac = hpac;
+        currentDocId = docRef.id;
+        currentStatus = 'active';
+        isSignedUp = true;
+        hideMainButtons();
+
+        showPopup(`
+          <h3 style="color:var(--accent);">🔐 Your HPAC Code</h3>
+          <div style="background:var(--bg-input);padding:16px;border-radius:var(--radius-sm);font-size:1.8rem;font-weight:700;font-family:monospace;text-align:center;color:#c4b5fd;margin:12px 0;word-break:break-all;">${hpac}</div>
+          <p style="color:var(--text-secondary);font-size:0.95rem;line-height:1.6;">
+            <strong>Keep this code. Do not share it with everyone.</strong><br />
+            We do not share this code with anyone. This is your HPAC code.<br />
+            We advise you to comply with our privacy policy.
+          </p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
+            <button class="btn btn-outline" id="popupOpenUrl" style="flex:1;">🔗 Open URL</button>
+            <button class="btn btn-primary" id="popupCopyBtn" style="flex:1;">📋 Copy</button>
+            <button class="btn btn-success" id="popupProceedBtn" style="flex:1;">Proceed</button>
+          </div>
+        `);
+
+        setTimeout(() => {
+          const openUrlBtn = document.getElementById('popupOpenUrl');
+          const copyBtn = document.getElementById('popupCopyBtn');
+          const proceedBtn2 = document.getElementById('popupProceedBtn');
+          if (openUrlBtn) {
+            openUrlBtn.addEventListener('click', () => {
+              window.open('https://hgt-policy.firebaseapp.com/privacy', '_blank');
+            });
+          }
+          if (copyBtn) {
+            copyBtn.addEventListener('click', () => {
+              copyText(hpac);
+            });
+          }
+          if (proceedBtn2) {
+            proceedBtn2.addEventListener('click', () => {
+              popupOverlay.classList.remove('active');
+              showAuth('Authenticating...');
+              setTimeout(() => {
+                hideAuth();
+                renderDashboard(data);
+                resetUI();
+                dashboardSection.classList.remove('hidden');
+                hideMainButtons();
+                showPopup(`
+                  <h3 style="color:var(--success);">🎉 Welcome to your dashboard!</h3>
+                  <p style="color:var(--text-secondary);">Your HPAC code is ready to use.</p>
+                  <button class="btn btn-primary btn-block" onclick="document.getElementById('popupOverlay').classList.remove('active')">Continue</button>
+                `);
+              }, 1500);
+            });
+          }
+        }, 150);
+
+      } catch (e) {
+        hideAuth();
+        alert('Error saving data: ' + e.message);
+      }
+    });
+
+    // ============================================================
+    // RENDER DASHBOARD
+    // ============================================================
+    function renderDashboard(data) {
+      dashboardHpac.innerHTML = `${data.code || currentHpac} <div class="sub">Your HPAC code</div>`;
+      statusBadge.textContent = data.status === 'suspended' ? '● Suspended' : '● Active';
+      statusBadge.className = 'badge ' + (data.status === 'suspended' ? 'badge-suspended' : 'badge-active');
+      currentStatus = data.status || 'active';
+      if (data.status === 'suspended') {
+        dashDeniedBoard.classList.add('active');
+        dashboardHpac.style.opacity = '0.5';
+      } else {
+        dashDeniedBoard.classList.remove('active');
+        dashboardHpac.style.opacity = '1';
+      }
+      inquiryLink.href = 'https://hgt-policy.firebaseapp.com/inquiry';
+    }
+
+    // ============================================================
+    // DASHBOARD COPY
+    // ============================================================
+    dashCopyBtn.addEventListener('click', () => {
+      if (currentHpac) copyText(currentHpac);
+    });
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !==
+      '127.0.0.1') {
+      setTimeout(() => {
+        showPopup(`
+          <h3 style="color:var(--danger);">🔒 Not Secure</h3>
+          <p style="color:var(--text-secondary);">You are not on a secured connection (HTTPS).<br />For your privacy and security, please use a secured connection.</p>
+          <button class="btn btn-primary btn-block" onclick="document.getElementById('popupOverlay').classList.remove('active')">I understand</button>
+        `);
+      }, 1000);
+    }
+
+    console.log('Selfont ready.');
+    console.log('🌐 Browser translation is triggered by language selector.');
+    console.log('🔔 Notification permission requested on load.');
+    console.log('📧 Email selection popup shown on first visit.');
+    console.log('🖼️ Image loaded from: https://cdn-icons-png.flaticon.com/512/2906/2906274.png');
+  </script>
+</body>
+</html>
